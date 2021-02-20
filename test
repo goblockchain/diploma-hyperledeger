@@ -1,0 +1,37 @@
+docker exec cli peer channel update -o orderer:7050 -c diplomachannel -f /opt/gopath/src/github.com/hyperledger/fabric/peer/config/Org1ChannelMSPanchors.tx --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/diploma.com/orderers/orderer.diploma.com/msp/tlscacerts/tlsca.diploma.com-cert.pem
+
+docker exec \
+   -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.com/peers/peer0.org2.com/tls/ca.crt" \
+    -e "CORE_PEER_ADDRESS=peer0.org2.com:7051" \
+   -e "CORE_PEER_LOCALMSPID=Org2MSP" \
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.com/users/Admin@org2.com/msp" \
+    cli peer channel update -o orderer:7050 -c diplomachannel -f /opt/gopath/src/github.com/hyperledger/fabric/peer/config/Org2ChannelMSPanchors.tx --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/diploma.com/orderers/orderer.diploma.com/msp/tlscacerts/tlsca.diploma.com-cert.pem
+
+docker exec \
+   -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/obs1.com/peers/peer0.obs1.com/tls/ca.crt" \
+    -e "CORE_PEER_ADDRESS=peer0.obs1.com:7051" \
+   -e "CORE_PEER_LOCALMSPID=Obs1MSP" \
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/obs1.com/users/Admin@obs1.com/msp" \
+    cli peer channel update -o orderer:7050 -c diplomachannel -f /opt/gopath/src/github.com/hyperledger/fabric/peer/config/Obs1ChannelMSPanchors.tx --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/diploma.com/orderers/orderer.diploma.com/msp/tlscacerts/tlsca.diploma.com-cert.pem
+
+
+
+docker exec \
+    -e "CORE_PEER_LOCALMSPID=Org1MSP" \
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.com/users/Admin@org1.com/msp" \
+       cli peer chaincode install -n med -v 2 -p /opt/gopath/src/github.com/med/ -l node && \
+docker exec \
+    -e "CORE_PEER_LOCALMSPID=N2miMSP" \
+    -e  "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/Admin@n2mi.n2med.com/msp" \
+       cli peer chaincode upgrade -o orderer.n2med.com:7050 -C n2medchannel -n med -l node -v $CC_VERSION -c '{"Args":[]}' -P "OR('N2miMSP.member')" --collections-config /opt/gopath/src/github.com/med/collection-config.json
+
+docker exec cli peer chaincode install -n diploma -v 1.2 -p github.com -l golang
+docker exec cli peer chaincode upgrade -o orderer.diploma.com:7050 -C diplomachannel -n diploma -l golang -v 1.2 -c '{"Args":[""]}' -P "OR ('Org1MSP.member','Org2MSP.member', 'Obs1MSP.member')" --collections-config collections_config.json 
+
+
+
+
+
+
+
+peer chaincode invoke -o orderer:7050 -C diplomachannel -n diploma --peerAddresses peer0.org2.com:7051 -c '{"Args":["criarDiploma","a","collectionDiplomaDetailsOrg2","10","a","b","10","a","b","10","a","b"]}'

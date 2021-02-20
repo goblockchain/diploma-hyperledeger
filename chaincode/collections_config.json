@@ -1,0 +1,26 @@
+[
+ {
+	 "name": "collectionDiploma",
+	 "policy": "OR('Org1MSP.member', 'Org2MSP.member', 'Obs1MSP.member')",
+	 "requiredPeerCount": 0,
+	 "maxPeerCount": 3,
+	 "blockToLive":1000000,
+	 "memberOnlyRead": true
+},
+ {
+	 "name": "collectionDiplomaDetailsOrg1",
+	 "policy": "OR('Org1MSP.member', 'Obs1MSP.member')",
+	 "requiredPeerCount": 0,
+	 "maxPeerCount": 3,
+	 "blockToLive":100000,
+	 "memberOnlyRead": true
+ },
+ {
+	"name": "collectionDiplomaDetailsOrg2",
+	"policy": "OR('Org2MSP.member', 'Obs1MSP.member')",
+	"requiredPeerCount": 0,
+	"maxPeerCount": 3,
+	"blockToLive":100000,
+	"memberOnlyRead": true
+}
+]

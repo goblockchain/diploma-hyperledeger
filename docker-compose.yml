@@ -1,0 +1,198 @@
+version: '2'
+
+networks:
+  diploma: 
+
+services:
+  ca:
+      container_name: ca.goblockchain.com
+      image: hyperledger/fabric-ca:1.4.1
+      command: sh -c 'fabric-ca-server start -d -b admin:adminpw --port 7150 --cfg.identities.allowremove'
+      environment:
+         - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca
+         - FABRIC_CA_SERVER_CLIENT=/etc/hyperledger/fabric-ca-client
+         - FABRIC_CA_CLIENT_TLS_CERTFILES=/etc/hyperledger/fabric-ca/tls-cert.pem
+         - FABRIC_CA_SERVER_TLS_ENABLED=true
+         - FABRIC_CA_SERVER_CA_NAME=ca.goblockchain.com
+         - FABRIC_CA_SERVER_CSR_CN=ca.goblockchain.com
+         - FABRIC_CA_SERVER_CSR_HOSTS=ca.goblockchain.com
+         - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca/tlsca/ca.goblockchain-key.pem
+         - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca/tlsca/ca.goblockchain-cert.pem
+         - FABRIC_CA_SERVER_DEBUG=true
+      volumes:
+         - ./goblockchain/:/etc/hyperledger/fabric-ca
+         - ./goblockchain/server:/etc/hyperledger/fabric-ca-server
+         - ./goblockchain/client:/etc/hyperledger/fabric-ca-client
+         - ./ca-generation:/etc/hyperledger/scripts
+      ports:
+         - 7150:7150
+
+  orderer:
+    container_name: orderer.${ORGANIZATION_NAME2}
+    image: hyperledger/fabric-orderer
+    environment:
+      - FABRIC_LOGGING_SPEC=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=Orderer${ORGANIZATION_NAME}MSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+      # Enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/msp/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/msp/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=/etc/hyperledger/msp/orderer/tls/ca.crt
+    working_dir: /opt/orderer
+    command: orderer
+    ports:
+      - 7050:7050
+    volumes:
+        - ./config/:/etc/hyperledger/configtx
+        - ./crypto-config/ordererOrganizations/orderers/orderer.${COMPANY_DOMAIN}/:/etc/hyperledger/msp/orderer
+        - ./crypto-config/peerOrganizations/peers/peer.${COMPANY_DOMAIN}/:/etc/hyperledger/msp/peer
+    networks:
+      - diploma
+
+  orderer2.n2med.com:
+    container_name: orderer2.n2med.com
+    image: hyperledger/fabric-orderer
+    environment:
+      - FABRIC_CFG_PATH=/etc/hyperledger/ordererConfig3
+      - FABRIC_LOGGING_SPEC=grpc=debug:info
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LEDGERTYPE=file      
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/orderer2/msp
+      # Enable TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/orderer2/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/orderer2/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/orderer2/tls/ca.crt]
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/etc/hyperledger/orderer2/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/etc/hyperledger/orderer2/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/etc/hyperledger/orderer2/tls/ca.crt]
+      - ORDERER_OPERATIONS_LISTENADDRESS=127.0.0.1:1444
+    working_dir: /etc/hyperledger/
+    command: orderer
+    ports:
+      - 7060:7060
+    volumes:
+        - ./config/:/etc/hyperledger/configtx
+        - ./crypto-config/ordererOrganizations/orderers/orderer2.n2med.com/:/etc/hyperledger/orderer2
+        - ./ordererConfig2:/etc/hyperledger/ordererConfig2
+    networks:
+      - n2med
+
+  orderer3.n2med.com:
+    container_name: orderer3.n2med.com
+    image: hyperledger/fabric-orderer
+    environment:
+      - FABRIC_LOGGING_SPEC=grpc=debug:info
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LEDGERTYPE=file      
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/orderer3/msp
+      - FABRIC_CFG_PATH=/etc/hyperledger/ordererConfig3
+      # Enable TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/orderer3/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/orderer3/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/orderer3/tls/ca.crt]
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/etc/hyperledger/orderer3/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/etc/hyperledger/orderer3/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/etc/hyperledger/orderer3/tls/ca.crt]
+      - ORDERER_OPERATIONS_LISTENADDRESS=127.0.0.1:1444
+    working_dir: /etc/hyperledger/
+    command: orderer
+    ports:
+      - 7070:7070
+    volumes:
+        - ./config/:/etc/hyperledger/configtx
+        - ./crypto-config/ordererOrganizations/orderers/orderer3.n2med.com/:/etc/hyperledger/orderer3
+        - ./ordererConfig3:/etc/hyperledger/ordererConfig3
+    networks:
+      - n2med
+
+  peer:
+    container_name: peer${PEER_NUMBER}.${ORGANIZATION_NAME2}
+    image: hyperledger/fabric-peer
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_PEER_ID=peer${PEER_NUMBER}.${COMPANY_DOMAIN}
+      - FABRIC_LOGGING_SPEC=debug
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_CHAINCODE_LOGGING_LEVEL=debug
+      - CORE_PEER_LOCALMSPID=${ORGANIZATION_NAME}MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_ADDRESS=peer${PEER_NUMBER}.${ORGANIZATION_NAME2}:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer${PEER_NUMBER}.${ORGANIZATION_NAME2}:7051
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=diploma_diploma
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${COUCH_DB_USERNAME}
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCH_DB_PASSWORD}
+      #Enable TLS
+      - CORE_PEER_TLS_ENABLED=true    
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/tls/ca.crt
+    working_dir: /etc/hyperledger/msp/peer
+    command: peer node start
+    ports:
+      - 7051:7051
+      - 7053:7053
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/peers/peer.${ORGANIZATION_NAME2}/msp:/etc/hyperledger/msp/peer
+        - ./crypto-config/peerOrganizations/peers/peer.${ORGANIZATION_NAME2}/tls:/etc/hyperledger/tls
+        - ./crypto-config/peerOrganizations/users:/etc/hyperledger/msp/users
+        - ./config:/etc/hyperledger/configtx
+    depends_on:
+      - orderer
+      - couchdb
+    networks:
+      - diploma
+
+  cli:
+    container_name: cli.${ORGANIZATION_NAME2}
+    image: hyperledger/fabric-tools
+    tty: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=info
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer${PEER_NUMBER}.${ORGANIZATION_NAME2}:7051
+      - CORE_PEER_LOCALMSPID=${ORGANIZATION_NAME}MSP
+      - CORE_PEER_TLS_ENABLED=true    
+      - CORE_PEER_TLS_CERT_FILE=/opt/peer/crypto/peerOrganizations/users/Admin@peer.goblockchain.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/peer/crypto/peerOrganizations/users/Admin@peer.goblockchain.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/peer/crypto/peerOrganizations/users/Admin@peer.goblockchain.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/peer/crypto/peerOrganizations/users/Admin@peer.goblockchain.com/msp
+      - CORE_CHAINCODE_KEEPALIVE=10
+    working_dir: /opt/peer
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./chaincode/:/opt/gopath/src/github.com/chaincode
+        - ./crypto-config:/opt/peer/crypto/
+        - ./config:/etc/hyperledger/configtx
+    networks:
+        - diploma
+
+  couchdb:
+    container_name: couchdb.${ORGANIZATION_NAME2}
+    image: hyperledger/fabric-couchdb
+    environment:
+      - COUCHDB_USER=${COUCH_DB_USERNAME}
+      - COUCHDB_PASSWORD=${COUCH_DB_PASSWORD}
+    ports:
+      - 5984:5984
+    networks:
+      - diploma

@@ -1,0 +1,94 @@
+{
+	"name": "first-network",
+	"version": "1.0.0",
+	"license": "Apache-2.0",
+	"client": {
+		"tlsEnable": false,
+		"adminUser": "admin",
+		"adminPassword": "adminpw",
+		"enableAuthentication": false,
+		"organization": "Org1MSP",
+		"connection": {
+			"timeout": {
+				"peer": {
+					"endorser": "300"
+				},
+				"orderer": "300"
+			}
+		}
+	},
+	"channels": {
+		"diplomachannel": {
+			"peers": {
+				"peer0.org1.com": {},
+				"peer0.org2.com": {},
+				"peer0.obs1.com": {}
+			},
+			"connection": {
+				"timeout": {
+					"peer": {
+						"endorser": "6000",
+						"eventHub": "6000",
+						"eventReg": "6000"
+					}
+				}
+			}
+		}
+	},
+	"organizations": {
+		"Org1MSP": {
+			"mspid": "Org1MSP",
+			"fullpath": true,
+			"adminPrivateKey": {
+				"path": "/home/goldlabel/diploma/crypto-config/peerOrganizations/org1.com/users/Admin@org1.com/msp/keystore/586b2950199c3b70a3c2b104862cc0f02b000f7fa7515202bbfea963a847d4e5_sk"
+			},
+			"signedCert": {
+				"path": "/home/goldlabel/diploma/crypto-config/peerOrganizations/org1.com/users/Admin@org1.com/msp/signcerts/Admin@org1.com-cert.pem"
+			}
+		},
+		"Org2MSP": {
+			"mspid": "Org2MSP",
+			"fullpath": true,
+			"adminPrivateKey": {
+				"path": "/home/goldlabel/diploma/crypto-config/peerOrganizations/org2.com/users/Admin@org2.com/msp/keystore/e0ab054838093cc25eeb44e2bbedf6f30e8b96a34ab3bd0203ea544121ec607c_sk"
+			},
+			"signedCert": {
+				"path": "/home/goldlabel/diploma/crypto-config/peerOrganizations/org2.com/users/Admin@org2.com/msp/signcerts/Admin@org2.com-cert.pem"
+			}
+		},
+		"Obs1MSP": {
+			"mspid": "Obs1MSP",
+			"fullpath": true,
+			"adminPrivateKey": {
+				"path": "/home/goldlabel/diploma/crypto-config/peerOrganizations/obs1.com/users/Admin@obs1.com/msp/keystore/f1f204f914335893bc0a87764a5d0750e8d4502bc982b3c090896205d2e5948d_sk"
+			},
+			"signedCert": {
+				"path": "/home/goldlabel/diploma/crypto-config/peerOrganizations/obs1.com/users/Admin@obs1.com/msp/signcerts/Admin@obs1.com-cert.pem"
+			}
+		}
+	},
+	"peers": {
+		"peer0.org1.com": {
+			"url": "grpc://localhost:7051",
+			"eventUrl": "grpc://localhost:7051",
+			"grpcOptions": {
+				"ssl-target-name-override": "peer0.org1.com"
+			}
+		},
+
+		"peer0.org2.com": {
+			"url": "grpc://localhost:7051",
+			"eventUrl": "grpc://localhost:8051",
+			"grpcOptions": {
+				"ssl-target-name-override": "peer0.org2.com"
+			}
+		},
+		"peer0.obs1.com": {
+			"url": "grpc://localhost:9051",
+			"eventUrl": "grpc://localhost:9051",
+			"grpcOptions": {
+				"ssl-target-name-override": "peer0.obs1.com"
+			}
+		}
+	}
+}
